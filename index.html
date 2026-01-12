@@ -319,8 +319,71 @@ function stopRecord(){
   if(!recording) return;
   recorder.stop();
 }
+  // Firebase init stays SAME
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  let confirmationResult;
+
+  window.onload = () => {
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+      'recaptcha-container',
+      {
+        size: 'invisible',
+        callback: () => {
+          console.log("reCAPTCHA solved");
+        }
+      }
+    );
+    recaptchaVerifier.render(); // 🔴 REQUIRED
+  };
+
+  async function sendOTP() {
+    let phone = document.getElementById("phone").value.trim();
+
+    // FORCE +91 IF USER ENTERS 10 DIGITS
+    if (/^\d{10}$/.test(phone)) {
+      phone = "+91" + phone;
+    }
+
+    if (!phone.startsWith("+")) {
+      alert("Enter phone with country code. Example: +919876543210");
+      return;
+    }
+
+    try {
+      confirmationResult = await auth.signInWithPhoneNumber(
+        phone,
+        window.recaptchaVerifier
+      );
+
+      document.getElementById("otp").style.display = "block";
+      document.getElementById("verifyBtn").style.display = "block";
+      alert("OTP sent successfully ✅");
+    } catch (err) {
+      console.error(err);
+      alert("OTP failed ❌ : " + err.message);
+    }
+  }
+
+  async function verifyOTP() {
+    const code = document.getElementById("otp").value;
+
+    if (code.length !== 6) {
+      alert("Enter valid 6-digit OTP");
+      return;
+    }
+
+    try {
+      await confirmationResult.confirm(code);
+      startApp();
+    } catch (err) {
+      alert("Invalid OTP ❌");
+    }
+  }
 
 </script>
 
 </body>
 </html>
+
