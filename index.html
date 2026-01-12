@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nexus | Private</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+
+<!-- Crypto -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<style>
+:root{
+  --grad:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+  --bg:#000;
+  --card:#121212;
+  --border:#262626;
+  --accent:#0095f6;
+  --muted:#9a9a9a;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  background:var(--bg);
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+}
+
+/* visibility */
+.hidden{display:none}
+.visible{display:flex}
+
+/* ===== AUTH ===== */
+#auth-container{
+  width:100%;
+  max-width:420px;
+  align-items:center;
+  justify-content:center;
+}
+
+.auth-card{
+  width:100%;
+  background:var(--card);
+  padding:40px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  text-align:center;
+}
+
+.logo{
+  font-size:30px;
+  font-weight:900;
+  font-style:italic;
+  margin-bottom:30px;
+  background:var(--grad);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.auth-card input{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#000;
+  color:#fff;
+}
+
+.auth-card button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:8px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.primary{background:var(--accent);color:#fff}
+.secondary{background:#fff;color:#000}
+
+/* ===== CHAT ===== */
+#chat-container{
+  width:100%;
+  max-width:450px;
+  height:100vh;
+  flex-direction:column;
+  border-left:1px solid var(--border);
+  border-right:1px solid var(--border);
+}
+
+header{
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+}
+
+/* notes */
+.notes{
+  padding:14px;
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+}
+.notes::-webkit-scrollbar{display:none}
+
+.note{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  cursor:pointer;
+}
+
+.note-ring{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:var(--grad);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.note-inner{
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+
+.note-text{
+  position:absolute;
+  top:-8px;
+  background:#fff;
+  color:#000;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:14px;
+  max-width:72px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.note-label{
+  font-size:10px;
+  margin-top:6px;
+  color:var(--muted);
+}
+
+/* messages */
+#messages{
+  flex:1;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  overflow-y:auto;
+}
+#messages::-webkit-scrollbar{display:none}
+
+.msg{
+  max-width:75%;
+  padding:12px 16px;
+  border-radius:22px;
+  font-size:14px;
+  line-height:1.4;
+}
+
+.sent{
+  background:var(--accent);
+  align-self:flex-end;
+}
+
+.received{
+  background:#262626;
+  align-self:flex-start;
+}
+
+.msg img{
+  max-width:100%;
+  border-radius:12px;
+}
+
+/* input */
+.input-bar{
+  padding:14px;
+  display:flex;
+  gap:12px;
+  border-top:1px solid var(--border);
+}
+
+#msgInput{
+  flex:1;
+  padding:12px 18px;
+  border-radius:25px;
+  border:1px solid #363636;
+  background:#1a1a1a;
+  color:#fff;
+  outline:none;
+}
+.send-btn{
+  color:var(--accent);
+  font-weight:700;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- AUTH -->
+<div id="auth-container" class="visible">
+  <div class="auth-card">
+    <div class="logo">NEXUS</div>
+    <div id="recaptcha-container"></div>
+    <input id="phone" placeholder="Phone number (+91...)">
+    <button class="primary" onclick="sendOTP()">Get Code</button>
+    <input id="otp" placeholder="Verification code" class="hidden">
+    <button id="verifyBtn" class="secondary hidden" onclick="verifyOTP()">Login</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat-container" class="hidden">
+  <header>
+    <div class="logo" style="font-size:20px">Nexus</div>
+    <div style="cursor:pointer" onclick="auth.signOut().then(()=>location.reload())">🔒</div>
+  </header>
+
+  <div class="notes">
+    <div class="note" onclick="updateNote()">
+      <div class="note-text" id="myNote">Tap to set</div>
+      <div class="note-ring"><div class="note-inner">👤</div></div>
+      <div class="note-label">Your note</div>
+    </div>
+  </div>
+
+  <div id="messages"></div>
+
+  <div class="input-bar">
+    <input id="msgInput" placeholder="Message…">
+    <div class="send-btn" onclick="sendMessage()">Send</div>
+  </div>
+</div>
+
+<script>
+/* Firebase config */
+const firebaseConfig={
+  apiKey:"AIzaSyATZocEXlzKYosr5EDrXWC2llBhlWGCAtE",
+  authDomain:"nexus-private.firebaseapp.com",
+  projectId:"nexus-private",
+  storageBucket:"nexus-private.appspot.com",
+  messagingSenderId:"532753085106",
+  appId:"1:532753085106:web:b87bb49f50ae4fdf810fab"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+const SECRET_KEY="Secretamongus";
+
+/* auth */
+window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier(
+  'recaptcha-container',{size:'invisible'}
+);
+
+async function sendOTP(){
+  const phone=document.getElementById('phone').value;
+  if(!phone)return alert("Enter phone");
+  window.confirmationResult=
+    await auth.signInWithPhoneNumber(phone,recaptchaVerifier);
+  otp.classList.remove("hidden");
+  verifyBtn.classList.remove("hidden");
+}
+
+async function verifyOTP(){
+  await confirmationResult.confirm(otp.value);
+  auth-container.classList.add("hidden");
+  chat-container.classList.remove("hidden");
+  loadMessages();
+  loadNotes();
+}
+
+/* notes */
+function updateNote(){
+  const n=prompt("What's on your mind?");
+  if(n) db.collection("notes")
+    .doc(auth.currentUser.phoneNumber)
+    .set({text:n});
+}
+
+function loadNotes(){
+  db.collection("notes").onSnapshot(s=>{
+    s.forEach(d=>{
+      if(d.id===auth.currentUser.phoneNumber)
+        myNote.innerText=d.data().text;
+    });
+  });
+}
+
+/* messages */
+function sendMessage(){
+  const t=msgInput.value.trim();
+  if(!t)return;
+  const enc=CryptoJS.AES.encrypt(t,SECRET_KEY).toString();
+  db.collection("chats").add({
+    sender:auth.currentUser.phoneNumber,
+    text:enc,
+    timestamp:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  msgInput.value="";
+}
+
+function loadMessages(){
+  db.collection("chats").orderBy("timestamp")
+  .onSnapshot(s=>{
+    messages.innerHTML="";
+    s.forEach(d=>{
+      const data=d.data();
+      const txt=CryptoJS.AES.decrypt(data.text,SECRET_KEY)
+        .toString(CryptoJS.enc.Utf8);
+      const div=document.createElement("div");
+      div.className="msg "+(
+        data.sender===auth.currentUser.phoneNumber?"sent":"received"
+      );
+      div.innerHTML=/\.(jpg|png|gif)$/i.test(txt)
+        ? `<img src="${txt}">`
+        : txt;
+      messages.appendChild(div);
+    });
+    messages.scrollTop=messages.scrollHeight;
+  });
+}
+</script>
+
+</body>
+</html>
