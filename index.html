@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nexus</title>
+    <title>Nexus | Connected</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <meta name="theme-color" content="#000000">
 
@@ -14,211 +14,154 @@
 
     <style>
         :root {
-            /* Nexus Brand Gradient */
             --nexus-grad: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            --bg: #000000;
-            --glass: rgba(20, 20, 20, 0.85);
-            --border: #262626;
-            --accent: #0095f6;
-            --sent-grad: linear-gradient(to bottom right, #3797f0, #0065c7);
+            --bg: #000; --glass: rgba(18, 18, 18, 0.85); --border: #2a2a2a; 
+            --accent: #0095f6; --sent: #3797f0; --received: #262626;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        
-        body { 
-            margin: 0; height: 100dvh; /* Dynamic Viewport Height for mobile */
-            background: var(--bg); color: #fff; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; user-select: none;
-        }
-
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; height: 100dvh; background: var(--bg); color: white; font-family: -apple-system, sans-serif; overflow: hidden; }
         .hidden { display: none !important; }
 
-        /* --- AUTH SCREEN --- */
-        #auth {
-            height: 100%; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; padding: 30px;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-        }
-        .logo-text {
-            font-size: 48px; font-weight: 800; font-style: italic; letter-spacing: -2px;
-            background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 40px; filter: drop-shadow(0 0 20px rgba(220, 39, 67, 0.3));
-        }
-        .auth-input {
-            width: 100%; max-width: 320px; padding: 16px; 
-            border-radius: 12px; border: 1px solid #333; background: #111; color: white;
-            font-size: 16px; margin-bottom: 12px; transition: border 0.3s;
-        }
-        .auth-input:focus { border-color: var(--accent); }
-        .auth-btn {
-            width: 100%; max-width: 320px; padding: 16px; border-radius: 12px;
-            background: white; color: black; font-weight: 700; font-size: 16px; border: none;
-            cursor: pointer; transition: transform 0.1s;
-        }
-        .auth-btn:active { transform: scale(0.98); }
+        /* AUTH SCREEN */
+        #auth { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: radial-gradient(circle at center, #222, #000); }
+        .logo { font-size: 50px; font-weight: 900; font-style: italic; background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; }
+        input { width: 100%; max-width: 320px; padding: 15px; border-radius: 12px; border: 1px solid #333; background: #111; color: white; margin-bottom: 15px; font-size: 16px; }
+        .btn { width: 100%; max-width: 320px; padding: 15px; border-radius: 12px; background: white; color: black; font-weight: bold; border: none; cursor: pointer; font-size: 16px; }
 
-        /* --- MAIN APP --- */
-        #chat {
-            width: 100%; max-width: 600px; height: 100%; margin: 0 auto;
-            display: flex; flex-direction: column; background: var(--bg);
-            border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-        }
-
-        /* Frosted Header */
-        header {
-            padding: 15px 20px; 
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05);
-            position: absolute; top: 0; width: 100%; max-width: 600px;
-        }
-        .header-title { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
-        .header-icons { display: flex; gap: 24px; font-size: 22px; }
-        .icon { cursor: pointer; transition: opacity 0.2s; }
-        .icon:active { opacity: 0.5; }
-
-        /* Message Area */
-        #messages {
-            flex: 1; overflow-y: scroll; padding: 80px 16px 100px 16px; /* Padding for header/footer */
-            display: flex; flex-direction: column; gap: 6px;
-            scroll-behavior: smooth;
-        }
+        /* CHAT UI */
+        #chat { width: 100%; max-width: 600px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; position: relative; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
         
-        .msg {
-            max-width: 75%; padding: 10px 16px; border-radius: 20px; 
-            font-size: 15px; line-height: 1.4; position: relative;
-            animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-            word-wrap: break-word;
-        }
+        header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); z-index: 10; }
+        .vanish-toggle { font-size: 11px; padding: 6px 12px; border-radius: 20px; border: 1px solid #444; color: #888; cursor: pointer; transition: 0.3s; }
+        .vanish-active { border-color: #ff3b30; color: #ff3b30; background: rgba(255, 59, 48, 0.1); }
+        .icons { display: flex; gap: 20px; font-size: 22px; }
+        .icon { cursor: pointer; }
 
-        .sent {
-            background: var(--sent-grad); align-self: flex-end; color: white;
-            border-bottom-right-radius: 4px;
-        }
-        
-        .received {
-            background: #262626; align-self: flex-start; color: #e0e0e0;
-            border-bottom-left-radius: 4px;
-        }
+        /* NOTES */
+        .notes-area { display: flex; gap: 15px; padding: 15px; overflow-x: auto; border-bottom: 1px solid var(--border); background: var(--bg); }
+        .note-wrap { display: flex; flex-direction: column; align-items: center; position: relative; min-width: 70px; cursor: pointer; }
+        .ring { width: 68px; height: 68px; border-radius: 50%; background: var(--nexus-grad); display: flex; align-items: center; justify-content: center; }
+        .ring-inner { width: 62px; height: 62px; border-radius: 50%; background: #000; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .bubble { position: absolute; top: -8px; background: white; color: black; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 
+        /* MESSAGES */
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+        .msg { max-width: 75%; padding: 12px 16px; border-radius: 22px; font-size: 15px; position: relative; word-wrap: break-word; line-height: 1.4; }
+        .sent { background: var(--sent); align-self: flex-end; border-bottom-right-radius: 4px; color: white; }
+        .received { background: var(--received); align-self: flex-start; border-bottom-left-radius: 4px; color: #ddd; }
         .msg img { width: 100%; border-radius: 12px; margin-top: 5px; }
-        .msg audio { height: 30px; width: 200px; filter: invert(1); opacity: 0.8; }
+        .msg audio { width: 200px; height: 30px; filter: invert(1); }
+        .fire-icon { position: absolute; bottom: -18px; right: 0; font-size: 12px; }
 
-        /* Input Bar */
-        .input-bar {
-            position: absolute; bottom: 0; width: 100%; max-width: 600px;
-            padding: 12px 16px 20px 16px; /* Extra padding for iPhone home bar */
-            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; gap: 12px; z-index: 10;
-        }
-
-        #msg {
-            flex: 1; background: #1a1a1a; border: 1px solid #333;
-            padding: 12px 18px; border-radius: 24px; color: white; font-size: 15px;
-            transition: 0.2s;
-        }
-        #msg:focus { border-color: #555; background: #222; }
-
-        .action-btn { font-size: 22px; color: #fff; cursor: pointer; display: flex; align-items: center; }
-        .mic-active { color: #ff3b30; animation: pulse 1s infinite; }
-
-        /* Animations */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* INPUT */
+        .input-bar { padding: 15px; display: flex; gap: 10px; align-items: center; background: var(--glass); backdrop-filter: blur(20px); border-top: 1px solid var(--border); }
+        #msgInput { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #333; background: #1a1a1a; color: white; }
+        .rec-btn { font-size: 20px; cursor: pointer; color: white; }
+        .rec-active { color: #ff3b30; animation: pulse 1s infinite; }
+        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* Call Overlay */
-        #call-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 100;
-            display: flex; flex-direction: column;
-        }
+        /* CALL OVERLAY */
+        #call-screen { position: fixed; inset: 0; background: #000; z-index: 50; display: flex; flex-direction: column; }
         #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
-        #localVideo {
-            position: absolute; top: 50px; right: 20px; width: 100px; height: 150px;
-            background: #222; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);
-            object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .call-controls {
-            position: absolute; bottom: 50px; left: 0; width: 100%;
-            display: flex; justify-content: center; gap: 20px;
-        }
-        .hangup-btn {
-            width: 60px; height: 60px; border-radius: 50%; background: #ff3b30;
-            border: none; color: white; font-size: 24px; display: flex; 
-            align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(255, 59, 48, 0.4);
-        }
+        #localVideo { position: absolute; top: 20px; right: 20px; width: 100px; height: 150px; background: #222; border-radius: 12px; border: 2px solid white; object-fit: cover; }
+        .controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: center; gap: 20px; }
+        .call-action { padding: 15px 30px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; }
+        .ans { background: #25d366; color: white; }
+        .end { background: #ff3b30; color: white; }
     </style>
 </head>
 <body>
 
 <div id="auth">
-    <div class="logo-text">Nexus</div>
+    <div class="logo">Nexus</div>
     <div id="recaptcha"></div>
-    <input id="phoneInput" class="auth-input" placeholder="Phone number (+91...)">
-    <button onclick="sendOTP()" class="auth-btn">Continue</button>
-    
-    <div id="otp-area" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <input id="otpInput" class="auth-input" placeholder="Enter Code" style="margin-top: 15px;">
-        <button onclick="verifyOTP()" class="auth-btn">Verify</button>
+    <input id="phoneInput" placeholder="Enter Phone (+91...)">
+    <button class="btn" onclick="sendOTP()">Get Code</button>
+    <div id="otp-area" class="hidden" style="width:100%; max-width:320px; margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+        <input id="otpInput" placeholder="Enter OTP">
+        <button class="btn" onclick="verifyOTP()">Login</button>
     </div>
 </div>
 
 <div id="chat" class="hidden">
     <header>
-        <div class="header-title" style="background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic;">Nexus</div>
-        <div class="header-icons">
-            <span class="icon" onclick="startCall(true)">📹</span>
-            <span class="icon" onclick="startCall(false)">📞</span>
+        <div style="font-weight: 800; font-style: italic; background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">NEXUS</div>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <div id="vanishBtn" class="vanish-toggle" onclick="toggleVanish()">Vanish OFF</div>
+            <div class="icons">
+                <span class="icon" onclick="startCall(true)">📹</span>
+                <span class="icon" onclick="startCall(false)">📞</span>
+            </div>
         </div>
     </header>
+
+    <div class="notes-area">
+        <div class="note-wrap" onclick="setNote()">
+            <div class="bubble" id="myNoteText">Set Note</div>
+            <div class="ring"><div class="ring-inner">Me</div></div>
+        </div>
+        <div class="note-wrap hidden" id="partnerNote">
+            <div class="bubble" id="partnerNoteText">...</div>
+            <div class="ring" style="filter: grayscale(1);"><div class="ring-inner">Partner</div></div>
+        </div>
+    </div>
 
     <div id="messages"></div>
 
     <div class="input-bar">
-        <span class="action-btn" onclick="imgPicker.click()">📷</span>
-        <input id="msg" placeholder="iMessage..." autocomplete="off">
-        <span class="action-btn" id="micBtn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤</span>
-        <span class="action-btn" onclick="sendMessage()" style="color: var(--accent); font-weight: 700; font-size: 16px;">Send</span>
+        <span class="icon" onclick="imgPicker.click()">📷</span>
+        <input id="msgInput" placeholder="Message..." autocomplete="off">
+        <span class="rec-btn" id="mic" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤</span>
+        <span class="icon" onclick="sendMsg()" style="color: var(--accent); font-weight:bold; font-size:16px;">Send</span>
     </div>
 </div>
 
-<div id="call-overlay" class="hidden">
+<div id="call-screen" class="hidden">
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
-    <div class="call-controls">
-        <button class="hangup-btn" onclick="endCall()">Phone</button>
+    <div class="controls">
+        <button id="answerBtn" class="call-action ans hidden" onclick="answerCall()">Answer</button>
+        <button class="call-action end" onclick="endCall()">End Call</button>
     </div>
 </div>
 
 <input type="file" id="imgPicker" accept="image/*" class="hidden">
 
 <script>
-/* --- CONFIGURATION --- */
+/* 1. CONFIG & KEYS */
 const firebaseConfig = {
     apiKey: "AIzaSyATZocEXlzKYosr5EDrXWC2llBhlWGCAtE",
     authDomain: "nexus-private.firebaseapp.com",
     projectId: "nexus-private",
     storageBucket: "nexus-private.appspot.com"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-/* --- YOUR SETTINGS --- */
-const KEY = "Secretamongus"; 
-const HER_PHONE = "+918260368337";
-const MY_PHONE = "+918480894259"; // <--- ENTER YOUR NUMBER HERE
+// --- YOUR IDENTITIES ---
+const USER_1 = "+918480894259"; // YOU
+const USER_2 = "+918260368337"; // HER
+const SECRET_KEY = "Secretamongus"; 
 
-/* --- AUTH LOGIC --- */
+// SHARED ROOM ID (Alphabetical sort ensures you both match)
+const getRoomId = () => [USER_1, USER_2].sort().join("_");
+
+let vanishMode = false;
+let mediaRecorder, chunks = [];
+let localStream, pc;
+const servers = { iceServers: [{ urls: 'stun:stun1.l.google.com:19302' }] };
+
+/* 2. AUTHENTICATION */
 window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha', { size: 'invisible' });
 
 async function sendOTP() {
-    const phone = document.getElementById('phoneInput').value;
+    const p = document.getElementById('phoneInput').value;
     try {
-        window.confirmationResult = await auth.signInWithPhoneNumber(phone, recaptchaVerifier);
+        window.confirmationResult = await auth.signInWithPhoneNumber(p, recaptchaVerifier);
         document.getElementById('otp-area').classList.remove('hidden');
     } catch(e) { alert("Error: " + e.message); }
 }
@@ -228,119 +171,179 @@ async function verifyOTP() {
         await confirmationResult.confirm(document.getElementById('otpInput').value);
         document.getElementById('auth').classList.add('hidden');
         document.getElementById('chat').classList.remove('hidden');
-        initNexus();
+        init();
     } catch(e) { alert("Wrong Code"); }
 }
 
-/* --- CHAT LOGIC --- */
-function initNexus() {
-    loadMessages();
-    // Scroll to bottom on load
-    setTimeout(() => {
-        const box = document.getElementById('messages');
-        box.scrollTop = box.scrollHeight;
-    }, 500);
+/* 3. CORE LOGIC */
+function init() {
+    loadMsgs();
+    loadNotes();
+    listenCalls();
 }
 
-function sendMessage() {
-    const text = document.getElementById('msg').value;
-    if(!text) return;
-    
-    // Encrypt
-    const enc = CryptoJS.AES.encrypt(JSON.stringify({type:'text', data:text}), KEY).toString();
-    
-    db.collection('rooms').doc(roomId()).collection('messages').add({
+function toggleVanish() {
+    vanishMode = !vanishMode;
+    const b = document.getElementById('vanishBtn');
+    if(vanishMode) { b.innerText = "Vanish ON"; b.classList.add('vanish-active'); }
+    else { b.innerText = "Vanish OFF"; b.classList.remove('vanish-active'); }
+}
+
+function sendMsg() {
+    const txt = document.getElementById('msgInput').value;
+    if(!txt) return;
+    uploadPayload({ type: 'text', data: txt });
+    document.getElementById('msgInput').value = '';
+}
+
+function uploadPayload(payload) {
+    const enc = CryptoJS.AES.encrypt(JSON.stringify(payload), SECRET_KEY).toString();
+    db.collection('rooms').doc(getRoomId()).collection('messages').add({
         sender: auth.currentUser.phoneNumber,
         text: enc,
+        vanish: vanishMode,
+        seenBy: [auth.currentUser.phoneNumber],
         ts: firebase.firestore.FieldValue.serverTimestamp()
     });
-    
-    document.getElementById('msg').value = '';
 }
 
-function loadMessages() {
-    db.collection('rooms').doc(roomId()).collection('messages').orderBy('ts').onSnapshot(snapshot => {
+function loadMsgs() {
+    db.collection('rooms').doc(getRoomId()).collection('messages').orderBy('ts').onSnapshot(snap => {
         const box = document.getElementById('messages');
         box.innerHTML = '';
-        
-        snapshot.forEach(doc => {
+        snap.forEach(doc => {
             const m = doc.data();
-            let content = "";
+            const myNum = auth.currentUser.phoneNumber;
+
+            // Mark as seen if not me
+            if(!m.seenBy.includes(myNum)) {
+                doc.ref.update({ seenBy: firebase.firestore.FieldValue.arrayUnion(myNum) });
+            }
+            // Delete if vanish ON and both seen
+            if(m.vanish && m.seenBy.length >= 2) {
+                setTimeout(() => doc.ref.delete(), 2000);
+            }
+
+            let content;
             try {
-                // Decrypt
-                const bytes = CryptoJS.AES.decrypt(m.text, KEY);
-                const decrypted = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-                
-                if(decrypted.type === 'text') content = decrypted.data;
-                else if(decrypted.type === 'image') content = `<img src="${decrypted.data}">`;
-                else if(decrypted.type === 'voice') content = `<audio controls src="${decrypted.data}"></audio>`;
-            } catch(e) { content = "🔒 Encrypted Message"; }
+                const dec = JSON.parse(CryptoJS.AES.decrypt(m.text, SECRET_KEY).toString(CryptoJS.enc.Utf8));
+                if(dec.type === 'text') content = dec.data;
+                else if(dec.type === 'image') content = `<img src="${dec.data}">`;
+                else if(dec.type === 'voice') content = `<audio controls src="${dec.data}"></audio>`;
+            } catch(e) { return; }
 
             const div = document.createElement('div');
-            div.className = `msg ${m.sender === auth.currentUser.phoneNumber ? 'sent' : 'received'}`;
-            div.innerHTML = content;
+            // Check Identity
+            div.className = `msg ${m.sender === myNum ? 'sent' : 'received'}`;
+            div.innerHTML = content + (m.vanish ? '<div class="fire-icon">🔥</div>' : '');
             box.appendChild(div);
         });
-        
-        // Auto-scroll to bottom
         box.scrollTop = box.scrollHeight;
     });
 }
 
-const roomId = () => [auth.currentUser.phoneNumber, HER_PHONE].sort().join("_");
+/* 4. NOTES */
+function setNote() {
+    const t = prompt("Update Status:");
+    if(t) db.collection('notes').doc(auth.currentUser.phoneNumber).set({ text: t });
+}
+function loadNotes() {
+    db.collection('notes').onSnapshot(snap => {
+        snap.forEach(doc => {
+            if(doc.id === auth.currentUser.phoneNumber) {
+                document.getElementById('myNoteText').innerText = doc.data().text;
+            } else {
+                document.getElementById('partnerNote').classList.remove('hidden');
+                document.getElementById('partnerNoteText').innerText = doc.data().text;
+            }
+        });
+    });
+}
 
-/* --- MEDIA & CALLS --- */
-// Image Upload
+/* 5. MEDIA */
 const imgPicker = document.getElementById('imgPicker');
 imgPicker.onchange = async () => {
-    const file = imgPicker.files[0];
-    if(!file) return;
-    const ref = storage.ref(`images/${Date.now()}`);
-    await ref.put(file);
-    const url = await ref.getDownloadURL();
-    
-    const enc = CryptoJS.AES.encrypt(JSON.stringify({type:'image', data:url}), KEY).toString();
-    db.collection('rooms').doc(roomId()).collection('messages').add({
-        sender: auth.currentUser.phoneNumber, text: enc, ts: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    const f = imgPicker.files[0];
+    if(!f) return;
+    const ref = storage.ref(`img/${Date.now()}`);
+    await ref.put(f);
+    uploadPayload({ type: 'image', data: await ref.getDownloadURL() });
 };
 
-// Voice Recorder
-let mediaRecorder, audioChunks = [];
-async function startRecording() {
-    document.getElementById('micBtn').classList.add('mic-active');
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+async function startRec() {
+    document.getElementById('mic').classList.add('rec-active');
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(s);
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
     mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const b = new Blob(chunks, { type: 'audio/webm' });
         const ref = storage.ref(`voice/${Date.now()}.webm`);
-        await ref.put(blob);
-        const url = await ref.getDownloadURL();
-        
-        const enc = CryptoJS.AES.encrypt(JSON.stringify({type:'voice', data:url}), KEY).toString();
-        db.collection('rooms').doc(roomId()).collection('messages').add({
-            sender: auth.currentUser.phoneNumber, text: enc, ts: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        audioChunks = [];
+        await ref.put(b);
+        uploadPayload({ type: 'voice', data: await ref.getDownloadURL() });
+        chunks = [];
     };
     mediaRecorder.start();
 }
-function stopRecording() {
-    if(mediaRecorder) mediaRecorder.stop();
-    document.getElementById('micBtn').classList.remove('mic-active');
+function stopRec() { if(mediaRecorder) mediaRecorder.stop(); document.getElementById('mic').classList.remove('rec-active'); }
+
+/* 6. CALLS */
+async function startCall(vid) {
+    document.getElementById('call-screen').classList.remove('hidden');
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: vid });
+    document.getElementById('localVideo').srcObject = localStream;
+    
+    pc = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+    
+    pc.onicecandidate = e => { if(e.candidate) db.collection('calls').doc(getRoomId()).collection('candidates').add(e.candidate.toJSON()); };
+    pc.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    db.collection('calls').doc(getRoomId()).set({ offer: { type: offer.type, sdp: offer.sdp } });
 }
 
-// Video Call Stub (Needs WebRTC implementation from previous steps if fully required)
-async function startCall(video) {
-    document.getElementById('call-overlay').classList.remove('hidden');
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: video });
-    document.getElementById('localVideo').srcObject = stream;
-    // Note: Full WebRTC signaling code would go here
+function listenCalls() {
+    db.collection('calls').doc(getRoomId()).onSnapshot(async snap => {
+        const d = snap.data();
+        if(!d) return;
+        if(d.offer && !pc) {
+            document.getElementById('call-screen').classList.remove('hidden');
+            document.getElementById('answerBtn').classList.remove('hidden');
+        }
+        if(d.answer && pc && !pc.currentRemoteDescription) {
+            await pc.setRemoteDescription(new RTCSessionDescription(d.answer));
+        }
+    });
+    db.collection('calls').doc(getRoomId()).collection('candidates').onSnapshot(snap => {
+        snap.docChanges().forEach(c => {
+            if(c.type === 'added' && pc) pc.addIceCandidate(new RTCIceCandidate(c.doc.data()));
+        });
+    });
 }
+
+async function answerCall() {
+    document.getElementById('answerBtn').classList.add('hidden');
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    document.getElementById('localVideo').srcObject = localStream;
+    
+    pc = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+    pc.onicecandidate = e => { if(e.candidate) db.collection('calls').doc(getRoomId()).collection('candidates').add(e.candidate.toJSON()); };
+    pc.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+
+    const doc = await db.collection('calls').doc(getRoomId()).get();
+    await pc.setRemoteDescription(new RTCSessionDescription(doc.data().offer));
+    const ans = await pc.createAnswer();
+    await pc.setLocalDescription(ans);
+    db.collection('calls').doc(getRoomId()).update({ answer: { type: ans.type, sdp: ans.sdp } });
+}
+
 function endCall() {
-    document.getElementById('call-overlay').classList.add('hidden');
-    // Stop tracks
+    if(pc) pc.close();
+    if(localStream) localStream.getTracks().forEach(t => t.stop());
+    db.collection('calls').doc(getRoomId()).delete();
+    location.reload();
 }
 </script>
 </body>
