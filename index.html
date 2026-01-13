@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nexus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta name="theme-color" content="#000000">
+
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        :root {
+            /* Nexus Brand Gradient */
+            --nexus-grad: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --bg: #000000;
+            --glass: rgba(20, 20, 20, 0.85);
+            --border: #262626;
+            --accent: #0095f6;
+            --sent-grad: linear-gradient(to bottom right, #3797f0, #0065c7);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body { 
+            margin: 0; height: 100dvh; /* Dynamic Viewport Height for mobile */
+            background: var(--bg); color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; user-select: none;
+        }
+
+        .hidden { display: none !important; }
+
+        /* --- AUTH SCREEN --- */
+        #auth {
+            height: 100%; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; padding: 30px;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+        }
+        .logo-text {
+            font-size: 48px; font-weight: 800; font-style: italic; letter-spacing: -2px;
+            background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 40px; filter: drop-shadow(0 0 20px rgba(220, 39, 67, 0.3));
+        }
+        .auth-input {
+            width: 100%; max-width: 320px; padding: 16px; 
+            border-radius: 12px; border: 1px solid #333; background: #111; color: white;
+            font-size: 16px; margin-bottom: 12px; transition: border 0.3s;
+        }
+        .auth-input:focus { border-color: var(--accent); }
+        .auth-btn {
+            width: 100%; max-width: 320px; padding: 16px; border-radius: 12px;
+            background: white; color: black; font-weight: 700; font-size: 16px; border: none;
+            cursor: pointer; transition: transform 0.1s;
+        }
+        .auth-btn:active { transform: scale(0.98); }
+
+        /* --- MAIN APP --- */
+        #chat {
+            width: 100%; max-width: 600px; height: 100%; margin: 0 auto;
+            display: flex; flex-direction: column; background: var(--bg);
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+        }
+
+        /* Frosted Header */
+        header {
+            padding: 15px 20px; 
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: absolute; top: 0; width: 100%; max-width: 600px;
+        }
+        .header-title { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
+        .header-icons { display: flex; gap: 24px; font-size: 22px; }
+        .icon { cursor: pointer; transition: opacity 0.2s; }
+        .icon:active { opacity: 0.5; }
+
+        /* Message Area */
+        #messages {
+            flex: 1; overflow-y: scroll; padding: 80px 16px 100px 16px; /* Padding for header/footer */
+            display: flex; flex-direction: column; gap: 6px;
+            scroll-behavior: smooth;
+        }
+        
+        .msg {
+            max-width: 75%; padding: 10px 16px; border-radius: 20px; 
+            font-size: 15px; line-height: 1.4; position: relative;
+            animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            word-wrap: break-word;
+        }
+
+        .sent {
+            background: var(--sent-grad); align-self: flex-end; color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .received {
+            background: #262626; align-self: flex-start; color: #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg img { width: 100%; border-radius: 12px; margin-top: 5px; }
+        .msg audio { height: 30px; width: 200px; filter: invert(1); opacity: 0.8; }
+
+        /* Input Bar */
+        .input-bar {
+            position: absolute; bottom: 0; width: 100%; max-width: 600px;
+            padding: 12px 16px 20px 16px; /* Extra padding for iPhone home bar */
+            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; gap: 12px; z-index: 10;
+        }
+
+        #msg {
+            flex: 1; background: #1a1a1a; border: 1px solid #333;
+            padding: 12px 18px; border-radius: 24px; color: white; font-size: 15px;
+            transition: 0.2s;
+        }
+        #msg:focus { border-color: #555; background: #222; }
+
+        .action-btn { font-size: 22px; color: #fff; cursor: pointer; display: flex; align-items: center; }
+        .mic-active { color: #ff3b30; animation: pulse 1s infinite; }
+
+        /* Animations */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Call Overlay */
+        #call-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 100;
+            display: flex; flex-direction: column;
+        }
+        #remoteVideo { width: 100%; height: 100%; object-fit: cover; }
+        #localVideo {
+            position: absolute; top: 50px; right: 20px; width: 100px; height: 150px;
+            background: #222; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);
+            object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .call-controls {
+            position: absolute; bottom: 50px; left: 0; width: 100%;
+            display: flex; justify-content: center; gap: 20px;
+        }
+        .hangup-btn {
+            width: 60px; height: 60px; border-radius: 50%; background: #ff3b30;
+            border: none; color: white; font-size: 24px; display: flex; 
+            align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(255, 59, 48, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div id="auth">
+    <div class="logo-text">Nexus</div>
+    <div id="recaptcha"></div>
+    <input id="phoneInput" class="auth-input" placeholder="Phone number (+91...)">
+    <button onclick="sendOTP()" class="auth-btn">Continue</button>
+    
+    <div id="otp-area" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <input id="otpInput" class="auth-input" placeholder="Enter Code" style="margin-top: 15px;">
+        <button onclick="verifyOTP()" class="auth-btn">Verify</button>
+    </div>
+</div>
+
+<div id="chat" class="hidden">
+    <header>
+        <div class="header-title" style="background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: italic;">Nexus</div>
+        <div class="header-icons">
+            <span class="icon" onclick="startCall(true)">📹</span>
+            <span class="icon" onclick="startCall(false)">📞</span>
+        </div>
+    </header>
+
+    <div id="messages"></div>
+
+    <div class="input-bar">
+        <span class="action-btn" onclick="imgPicker.click()">📷</span>
+        <input id="msg" placeholder="iMessage..." autocomplete="off">
+        <span class="action-btn" id="micBtn" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤</span>
+        <span class="action-btn" onclick="sendMessage()" style="color: var(--accent); font-weight: 700; font-size: 16px;">Send</span>
+    </div>
+</div>
+
+<div id="call-overlay" class="hidden">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div class="call-controls">
+        <button class="hangup-btn" onclick="endCall()">Phone</button>
+    </div>
+</div>
+
+<input type="file" id="imgPicker" accept="image/*" class="hidden">
+
+<script>
+/* --- CONFIGURATION --- */
+const firebaseConfig = {
+    apiKey: "AIzaSyATZocEXlzKYosr5EDrXWC2llBhlWGCAtE",
+    authDomain: "nexus-private.firebaseapp.com",
+    projectId: "nexus-private",
+    storageBucket: "nexus-private.appspot.com"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+/* --- YOUR SETTINGS --- */
+const KEY = "Secretamongus"; 
+const HER_PHONE = "+918260368337";
+const MY_PHONE = "+918480894259"; // <--- ENTER YOUR NUMBER HERE
+
+/* --- AUTH LOGIC --- */
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha', { size: 'invisible' });
+
+async function sendOTP() {
+    const phone = document.getElementById('phoneInput').value;
+    try {
+        window.confirmationResult = await auth.signInWithPhoneNumber(phone, recaptchaVerifier);
+        document.getElementById('otp-area').classList.remove('hidden');
+    } catch(e) { alert("Error: " + e.message); }
+}
+
+async function verifyOTP() {
+    try {
+        await confirmationResult.confirm(document.getElementById('otpInput').value);
+        document.getElementById('auth').classList.add('hidden');
+        document.getElementById('chat').classList.remove('hidden');
+        initNexus();
+    } catch(e) { alert("Wrong Code"); }
+}
+
+/* --- CHAT LOGIC --- */
+function initNexus() {
+    loadMessages();
+    // Scroll to bottom on load
+    setTimeout(() => {
+        const box = document.getElementById('messages');
+        box.scrollTop = box.scrollHeight;
+    }, 500);
+}
+
+function sendMessage() {
+    const text = document.getElementById('msg').value;
+    if(!text) return;
+    
+    // Encrypt
+    const enc = CryptoJS.AES.encrypt(JSON.stringify({type:'text', data:text}), KEY).toString();
+    
+    db.collection('rooms').doc(roomId()).collection('messages').add({
+        sender: auth.currentUser.phoneNumber,
+        text: enc,
+        ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    document.getElementById('msg').value = '';
+}
+
+function loadMessages() {
+    db.collection('rooms').doc(roomId()).collection('messages').orderBy('ts').onSnapshot(snapshot => {
+        const box = document.getElementById('messages');
+        box.innerHTML = '';
+        
+        snapshot.forEach(doc => {
+            const m = doc.data();
+            let content = "";
+            try {
+                // Decrypt
+                const bytes = CryptoJS.AES.decrypt(m.text, KEY);
+                const decrypted = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+                
+                if(decrypted.type === 'text') content = decrypted.data;
+                else if(decrypted.type === 'image') content = `<img src="${decrypted.data}">`;
+                else if(decrypted.type === 'voice') content = `<audio controls src="${decrypted.data}"></audio>`;
+            } catch(e) { content = "🔒 Encrypted Message"; }
+
+            const div = document.createElement('div');
+            div.className = `msg ${m.sender === auth.currentUser.phoneNumber ? 'sent' : 'received'}`;
+            div.innerHTML = content;
+            box.appendChild(div);
+        });
+        
+        // Auto-scroll to bottom
+        box.scrollTop = box.scrollHeight;
+    });
+}
+
+const roomId = () => [auth.currentUser.phoneNumber, HER_PHONE].sort().join("_");
+
+/* --- MEDIA & CALLS --- */
+// Image Upload
+const imgPicker = document.getElementById('imgPicker');
+imgPicker.onchange = async () => {
+    const file = imgPicker.files[0];
+    if(!file) return;
+    const ref = storage.ref(`images/${Date.now()}`);
+    await ref.put(file);
+    const url = await ref.getDownloadURL();
+    
+    const enc = CryptoJS.AES.encrypt(JSON.stringify({type:'image', data:url}), KEY).toString();
+    db.collection('rooms').doc(roomId()).collection('messages').add({
+        sender: auth.currentUser.phoneNumber, text: enc, ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+};
+
+// Voice Recorder
+let mediaRecorder, audioChunks = [];
+async function startRecording() {
+    document.getElementById('micBtn').classList.add('mic-active');
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const ref = storage.ref(`voice/${Date.now()}.webm`);
+        await ref.put(blob);
+        const url = await ref.getDownloadURL();
+        
+        const enc = CryptoJS.AES.encrypt(JSON.stringify({type:'voice', data:url}), KEY).toString();
+        db.collection('rooms').doc(roomId()).collection('messages').add({
+            sender: auth.currentUser.phoneNumber, text: enc, ts: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        audioChunks = [];
+    };
+    mediaRecorder.start();
+}
+function stopRecording() {
+    if(mediaRecorder) mediaRecorder.stop();
+    document.getElementById('micBtn').classList.remove('mic-active');
+}
+
+// Video Call Stub (Needs WebRTC implementation from previous steps if fully required)
+async function startCall(video) {
+    document.getElementById('call-overlay').classList.remove('hidden');
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: video });
+    document.getElementById('localVideo').srcObject = stream;
+    // Note: Full WebRTC signaling code would go here
+}
+function endCall() {
+    document.getElementById('call-overlay').classList.add('hidden');
+    // Stop tracks
+}
+</script>
+</body>
+</html>
