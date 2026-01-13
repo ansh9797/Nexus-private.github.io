@@ -11,24 +11,181 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 <style>
-body{margin:0;background:#000;color:#fff;font-family:-apple-system}
+:root{
+--bg:#000;
+--panel:#111;
+--border:#222;
+--sent:#3797f0;
+--recv:#262626;
+--text:#fff;
+--muted:#aaa;
+}
+
+*{box-sizing:border-box}
+body{
+margin:0;
+background:var(--bg);
+color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+height:100vh;
+overflow:hidden;
+}
+
 .hidden{display:none}
-#chat{max-width:500px;margin:auto;height:100vh;display:flex;flex-direction:column}
-header{padding:12px;background:#111;border-bottom:1px solid #222}
-.name{font-weight:bold;cursor:pointer}
-.status{font-size:12px;color:#aaa}
-#messages{flex:1;overflow:auto;padding:15px;display:flex;flex-direction:column;gap:10px}
-.msg{max-width:75%;padding:10px;border-radius:16px;position:relative}
-.sent{align-self:flex-end;background:#3797f0}
-.recv{align-self:flex-start;background:#262626}
-.reply-box{background:rgba(0,0,0,.25);padding:6px;border-left:3px solid #fff;border-radius:6px;margin-bottom:6px;font-size:12px}
-.tick{font-size:11px;opacity:.7;text-align:right;margin-top:2px}
-.input-bar{background:#111;padding:10px}
-.reply-preview{background:#1a1a1a;padding:8px;border-left:3px solid #3797f0;border-radius:6px;font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between}
-.row{display:flex;gap:10px}
-input{flex:1;padding:10px;border-radius:20px;border:none}
-button{background:none;border:none;color:#3797f0;font-weight:bold;cursor:pointer}
-.typing{font-size:12px;color:#aaa;padding:6px 15px}
+
+/* AUTH */
+#auth{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+gap:12px;
+padding:20px;
+}
+#auth input,#auth button{
+width:100%;
+max-width:280px;
+padding:14px;
+border-radius:12px;
+border:none;
+font-size:15px;
+}
+#auth button{background:#fff;font-weight:600}
+
+/* CHAT LAYOUT */
+#chat{
+max-width:480px;
+margin:auto;
+height:100vh;
+display:flex;
+flex-direction:column;
+background:var(--bg);
+border-left:1px solid var(--border);
+border-right:1px solid var(--border);
+}
+
+/* HEADER */
+header{
+height:60px;
+padding:10px 15px;
+background:var(--panel);
+border-bottom:1px solid var(--border);
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+.name{
+font-weight:600;
+font-size:16px;
+cursor:pointer;
+}
+.status{
+font-size:12px;
+color:var(--muted);
+}
+
+/* TYPING */
+#typing{
+padding:6px 15px;
+font-size:12px;
+color:var(--muted);
+}
+
+/* MESSAGES */
+#messages{
+flex:1;
+overflow-y:auto;
+padding:15px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+/* MESSAGE BUBBLES */
+.msg{
+max-width:75%;
+padding:10px 12px;
+border-radius:18px;
+font-size:14px;
+line-height:1.4;
+word-wrap:break-word;
+position:relative;
+}
+.sent{
+align-self:flex-end;
+background:var(--sent);
+border-bottom-right-radius:4px;
+}
+.recv{
+align-self:flex-start;
+background:var(--recv);
+border-bottom-left-radius:4px;
+}
+
+/* REPLY PREVIEW INSIDE MESSAGE */
+.reply-box{
+background:rgba(255,255,255,.15);
+padding:6px;
+border-left:3px solid #fff;
+border-radius:6px;
+font-size:12px;
+margin-bottom:6px;
+}
+
+/* TICKS */
+.tick{
+font-size:11px;
+opacity:.7;
+margin-top:4px;
+text-align:right;
+}
+
+/* INPUT BAR */
+.input-bar{
+padding:10px;
+background:var(--panel);
+border-top:1px solid var(--border);
+display:flex;
+flex-direction:column;
+gap:6px;
+}
+
+/* REPLY PREVIEW ABOVE INPUT */
+.reply-preview{
+background:#1a1a1a;
+padding:8px 10px;
+border-left:3px solid var(--sent);
+border-radius:6px;
+font-size:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+/* INPUT ROW */
+.input-row{
+display:flex;
+gap:10px;
+align-items:center;
+}
+.input-row input{
+flex:1;
+padding:12px;
+border-radius:20px;
+border:none;
+background:#1a1a1a;
+color:#fff;
+font-size:14px;
+}
+.input-row button{
+border:none;
+background:none;
+color:var(--sent);
+font-weight:600;
+font-size:14px;
+cursor:pointer;
+}
 </style>
 </head>
 
@@ -39,7 +196,7 @@ button{background:none;border:none;color:#3797f0;font-weight:bold;cursor:pointer
 <input id="phone" placeholder="+91...">
 <button onclick="sendOTP()">Send OTP</button>
 <div id="otpBox" class="hidden">
-<input id="otp">
+<input id="otp" placeholder="OTP">
 <button onclick="verifyOTP()">Login</button>
 </div>
 <div id="recaptcha"></div>
@@ -48,27 +205,29 @@ button{background:none;border:none;color:#3797f0;font-weight:bold;cursor:pointer
 <!-- CHAT -->
 <div id="chat" class="hidden">
 <header>
-<div class="name" id="chatName" onclick="setNickname()"></div>
-<div class="status" id="status"></div>
+<div class="name" id="chatName" onclick="setNickname()">Her</div>
+<div class="status" id="status">Offline</div>
 </header>
 
-<div class="typing hidden" id="typing">typing…</div>
+<div id="typing" class="hidden">typing…</div>
+
 <div id="messages"></div>
 
 <div class="input-bar">
 <div id="replyPreview" class="reply-preview hidden">
 <span id="replyText"></span>
-<span onclick="cancelReply()">✕</span>
+<span onclick="cancelReply()" style="cursor:pointer">✕</span>
 </div>
-<div class="row">
-<input id="msgIn" placeholder="Message" oninput="typingNow()">
+
+<div class="input-row">
+<input id="msgIn" placeholder="Message…" oninput="typingNow()">
 <button onclick="sendText()">Send</button>
 </div>
 </div>
 </div>
 
 <script>
-/* CONFIG */
+/* FIREBASE */
 firebase.initializeApp({
 apiKey:"AIzaSyATZocEXlzKYosr5EDrXWC2llBhlWGCAtE",
 authDomain:"nexus-private.firebaseapp.com",
@@ -79,7 +238,6 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 const KEY="Secretamongus";
 
-/* FIXED USERS */
 const ME="+918480894259";
 const HER="+918260368337";
 const ROOM=[ME,HER].sort().join("_");
@@ -89,7 +247,6 @@ let typingTimer;
 
 /* AUTH */
 window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha',{size:'invisible'});
-
 function sendOTP(){
 auth.signInWithPhoneNumber(phone.value,recaptchaVerifier)
 .then(r=>{window.cr=r;otpBox.classList.remove('hidden')});
@@ -97,93 +254,52 @@ auth.signInWithPhoneNumber(phone.value,recaptchaVerifier)
 function verifyOTP(){cr.confirm(otp.value)}
 
 auth.onAuthStateChanged(u=>{
-if(!u) return;
-
+if(!u)return;
 if(u.phoneNumber!==ME && u.phoneNumber!==HER){
-alert("Not authorized");
-auth.signOut();
-return;
+alert("Unauthorized"); auth.signOut(); return;
 }
-
 auth.remove();
-chat.classList.remove('hidden');
-
+chat.classList.remove("hidden");
 loadNickname();
-setPresence();
-listenPresence();
-listenTyping();
 listenMessages();
 });
 
-/* 🔤 NICKNAME SYSTEM */
-function otherUser(){
-return auth.currentUser.phoneNumber===ME?HER:ME;
-}
-
-function defaultName(){
-return auth.currentUser.phoneNumber===ME?"Her":"Him";
-}
-
+/* NICKNAME */
+function otherUser(){return auth.currentUser.phoneNumber===ME?HER:ME}
 function loadNickname(){
-db.collection("nicknames")
-.doc(auth.currentUser.phoneNumber)
-.collection("names")
-.doc(otherUser())
+db.collection("nicknames").doc(auth.currentUser.phoneNumber)
+.collection("names").doc(otherUser())
 .onSnapshot(d=>{
-chatName.textContent=d.exists?d.data().name:defaultName();
+chatName.textContent=d.exists?d.data().name:(auth.currentUser.phoneNumber===ME?"Her":"Him");
 });
 }
-
 function setNickname(){
-const name=prompt("Set nickname");
-if(!name) return;
-db.collection("nicknames")
+const n=prompt("Set nickname");
+if(n) db.collection("nicknames")
 .doc(auth.currentUser.phoneNumber)
 .collection("names")
-.doc(otherUser())
-.set({name});
-}
-
-/* PRESENCE */
-function setPresence(){
-const ref=db.collection("presence").doc(auth.currentUser.phoneNumber);
-ref.set({online:true,last:Date.now()});
-window.addEventListener("beforeunload",()=>ref.set({online:false,last:Date.now()}));
-}
-
-function listenPresence(){
-db.collection("presence").onSnapshot(s=>{
-s.forEach(d=>{
-if(d.id!==auth.currentUser.phoneNumber){
-const p=d.data();
-status.textContent=p.online?"Online":"Last seen "+new Date(p.last).toLocaleTimeString();
-}
-});
-});
+.doc(otherUser()).set({name:n});
 }
 
 /* TYPING */
 function typingNow(){
-db.collection("typing").doc(ROOM).set({user:auth.currentUser.phoneNumber});
+db.collection("typing").doc(ROOM).set({u:auth.currentUser.phoneNumber});
 clearTimeout(typingTimer);
 typingTimer=setTimeout(()=>db.collection("typing").doc(ROOM).delete(),1200);
 }
-function listenTyping(){
 db.collection("typing").doc(ROOM).onSnapshot(d=>{
-if(!d.exists||d.data().user===auth.currentUser.phoneNumber)
+if(!d.exists||d.data().u===auth.currentUser.phoneNumber)
 typing.classList.add("hidden");
 else typing.classList.remove("hidden");
 });
-}
 
-/* SEND MESSAGE */
+/* SEND */
 function sendText(){
 if(!msgIn.value) return;
-sendPayload({type:"text",data:msgIn.value,reply:replyData});
+sendPayload({data:msgIn.value,reply:replyData});
 msgIn.value="";
 cancelReply();
 }
-
 function sendPayload(p){
 const enc=CryptoJS.AES.encrypt(JSON.stringify(p),KEY).toString();
 db.collection("rooms").doc(ROOM).collection("messages").add({
@@ -196,18 +312,16 @@ ts:firebase.firestore.FieldValue.serverTimestamp()
 
 /* LOAD MESSAGES */
 function listenMessages(){
-db.collection("rooms").doc(ROOM).collection("messages").orderBy("ts")
-.onSnapshot(s=>{
+db.collection("rooms").doc(ROOM).collection("messages")
+.orderBy("ts").onSnapshot(s=>{
 messages.innerHTML="";
 s.forEach(d=>{
 const m=d.data(),me=auth.currentUser.phoneNumber;
 if(!m.seen.includes(me))
 d.ref.update({seen:firebase.firestore.FieldValue.arrayUnion(me)});
-
 const dec=JSON.parse(CryptoJS.AES.decrypt(m.text,KEY).toString(CryptoJS.enc.Utf8));
 const div=document.createElement("div");
 div.className="msg "+(m.sender===me?"sent":"recv");
-div.dataset.id=d.id;
 
 if(dec.reply){
 const r=document.createElement("div");
@@ -215,30 +329,24 @@ r.className="reply-box";
 r.textContent=dec.reply.preview;
 div.appendChild(r);
 }
-
 div.appendChild(document.createTextNode(dec.data));
 
-const tick=document.createElement("div");
-tick.className="tick";
-tick.textContent=m.seen.length>1?"✓✓":"✓";
-div.appendChild(tick);
+const t=document.createElement("div");
+t.className="tick";
+t.textContent=m.seen.length>1?"✓✓":"✓";
+div.appendChild(t);
 
 div.oncontextmenu=e=>{
 e.preventDefault();
-setReply(dec,d.id);
+replyData={preview:dec.data};
+replyText.textContent=dec.data;
+replyPreview.classList.remove("hidden");
 };
 
 messages.appendChild(div);
 });
 messages.scrollTop=messages.scrollHeight;
 });
-}
-
-/* REPLY */
-function setReply(dec,id){
-replyData={id,preview:dec.data};
-replyText.textContent=replyData.preview;
-replyPreview.classList.remove("hidden");
 }
 function cancelReply(){
 replyData=null;
