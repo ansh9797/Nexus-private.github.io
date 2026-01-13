@@ -1,238 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Nexus | Private</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<meta charset="UTF-8">
+<title>Nexus | Private</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        :root {
-            --nexus-grad: linear-gradient(135deg, #f09433, #bc1888);
-            --bg: #000; --glass: rgba(25, 25, 25, 0.9); --border: #333;
-            --sent: #3797f0; --received: #262626;
-        }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { margin: 0; background: var(--bg); color: white; height: 100dvh; overflow: hidden; }
-        .hidden { display: none !important; }
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-        /* AUTH */
-        #auth { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .logo { font-size: 45px; font-weight: 900; background: var(--nexus-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; }
-        input { width: 100%; max-width: 300px; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: #111; color: white; margin-bottom: 10px; }
-        .btn { width: 100%; max-width: 300px; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
-
-        /* MAIN CHAT */
-        #chat { width: 100%; max-width: 500px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; border-left: 1px solid var(--border); border-right: 1px solid var(--border); position: relative; }
-        
-        header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: var(--glass); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border); }
-        .vanish-btn { font-size: 11px; padding: 5px 10px; border-radius: 20px; border: 1px solid #555; cursor: pointer; }
-        .vanish-on { border-color: #ff3b30; color: #ff3b30; }
-
-        /* NOTES AREA */
-        .notes { display: flex; gap: 15px; padding: 15px; overflow-x: auto; border-bottom: 1px solid var(--border); }
-        .note-circle { display: flex; flex-direction: column; align-items: center; min-width: 70px; position: relative; }
-        .ring { width: 60px; height: 60px; border-radius: 50%; background: var(--nexus-grad); display: flex; align-items: center; justify-content: center; }
-        .inner { width: 54px; height: 54px; border-radius: 50%; background: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .note-text { position: absolute; top: -5px; background: white; color: black; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: bold; }
-
-        /* MESSAGES */
-        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 75%; padding: 12px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
-        .sent { background: var(--sent); align-self: flex-end; border-bottom-right-radius: 4px; }
-        .received { background: var(--received); align-self: flex-start; border-bottom-left-radius: 4px; }
-        
-        /* FOOTER */
-        .input-bar { padding: 15px; display: flex; gap: 10px; background: var(--glass); backdrop-filter: blur(15px); border-top: 1px solid var(--border); }
-        #msgIn { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #444; background: #1a1a1a; color: white; }
-
-        /* CALL OVERLAY */
-        #call-ui { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; flex-direction: column; }
-        video#remote { width: 100%; height: 100%; object-fit: cover; }
-        video#local { position: absolute; top: 20px; right: 20px; width: 100px; border-radius: 10px; border: 2px solid white; }
-    </style>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:-apple-system}
+.hidden{display:none}
+#chat{max-width:500px;margin:auto;height:100vh;display:flex;flex-direction:column}
+header{padding:12px;background:#111;border-bottom:1px solid #222}
+.name{font-weight:bold;cursor:pointer}
+.status{font-size:12px;color:#aaa}
+#messages{flex:1;overflow:auto;padding:15px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:75%;padding:10px;border-radius:16px;position:relative}
+.sent{align-self:flex-end;background:#3797f0}
+.recv{align-self:flex-start;background:#262626}
+.reply-box{background:rgba(0,0,0,.25);padding:6px;border-left:3px solid #fff;border-radius:6px;margin-bottom:6px;font-size:12px}
+.tick{font-size:11px;opacity:.7;text-align:right;margin-top:2px}
+.input-bar{background:#111;padding:10px}
+.reply-preview{background:#1a1a1a;padding:8px;border-left:3px solid #3797f0;border-radius:6px;font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between}
+.row{display:flex;gap:10px}
+input{flex:1;padding:10px;border-radius:20px;border:none}
+button{background:none;border:none;color:#3797f0;font-weight:bold;cursor:pointer}
+.typing{font-size:12px;color:#aaa;padding:6px 15px}
+</style>
 </head>
+
 <body>
 
+<!-- AUTH -->
 <div id="auth">
-    <div class="logo">Nexus</div>
-    <div id="recaptcha"></div>
-    <input id="phone" placeholder="+91...">
-    <button class="btn" style="background:white" onclick="sendOTP()">Send Code</button>
-    <div id="otp-box" class="hidden">
-        <input id="otp" placeholder="Enter OTP" style="margin-top:10px">
-        <button class="btn" style="background:var(--nexus-grad); color:white" onclick="verifyOTP()">Login</button>
-    </div>
+<input id="phone" placeholder="+91...">
+<button onclick="sendOTP()">Send OTP</button>
+<div id="otpBox" class="hidden">
+<input id="otp">
+<button onclick="verifyOTP()">Login</button>
+</div>
+<div id="recaptcha"></div>
 </div>
 
+<!-- CHAT -->
 <div id="chat" class="hidden">
-    <header>
-        <div style="font-weight:bold">NEXUS</div>
-        <div style="display:flex; gap:15px; align-items:center">
-            <div id="vBtn" class="vanish-btn" onclick="toggleVanish()">Vanish OFF</div>
-            <span onclick="call(true)" style="cursor:pointer">📹</span>
-            <span onclick="call(false)" style="cursor:pointer">📞</span>
-        </div>
-    </header>
+<header>
+<div class="name" id="chatName" onclick="setNickname()"></div>
+<div class="status" id="status"></div>
+</header>
 
-    <div class="notes">
-        <div class="note-circle" onclick="setNote()">
-            <div class="note-text" id="myN">Set Note</div>
-            <div class="ring"><div class="inner">Me</div></div>
-        </div>
-        <div class="note-circle" id="partnerNote" class="hidden">
-            <div class="note-text" id="herN">...</div>
-            <div class="ring" style="background:#444"><div class="inner">Her</div></div>
-        </div>
-    </div>
+<div class="typing hidden" id="typing">typing…</div>
+<div id="messages"></div>
 
-    <div id="messages"></div>
-
-    <div class="input-bar">
-        <span onclick="img.click()" style="cursor:pointer">📷</span>
-        <input id="msgIn" placeholder="Message..." autocomplete="off">
-        <span onmousedown="startRec()" onmouseup="stopRec()" style="cursor:pointer">🎤</span>
-        <span onclick="send()" style="color:var(--sent); font-weight:bold; cursor:pointer">Send</span>
-    </div>
+<div class="input-bar">
+<div id="replyPreview" class="reply-preview hidden">
+<span id="replyText"></span>
+<span onclick="cancelReply()">✕</span>
 </div>
-
-<div id="call-ui" class="hidden">
-    <video id="remote" autoplay playsinline></video>
-    <video id="local" autoplay playsinline muted></video>
-    <button onclick="endCall()" style="position:absolute; bottom:50px; left:50%; transform:translateX(-50%); background:red; color:white; padding:15px 30px; border-radius:30px; border:none; font-weight:bold;">End Call</button>
+<div class="row">
+<input id="msgIn" placeholder="Message" oninput="typingNow()">
+<button onclick="sendText()">Send</button>
 </div>
-
-<input type="file" id="img" class="hidden" accept="image/*">
+</div>
+</div>
 
 <script>
 /* CONFIG */
-const firebaseConfig = {
-    apiKey: "AIzaSyATZocEXlzKYosr5EDrXWC2llBhlWGCAtE",
-    authDomain: "nexus-private.firebaseapp.com",
-    projectId: "nexus-private",
-    storageBucket: "nexus-private.appspot.com"
-};
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(), db=firebase.firestore(), storage=firebase.storage();
+firebase.initializeApp({
+apiKey:"AIzaSyATZocEXlzKYosr5EDrXWC2llBhlWGCAtE",
+authDomain:"nexus-private.firebaseapp.com",
+projectId:"nexus-private"
+});
 
-/* DATA */
-const MY_PHONE = "+918480894259";
-const HER_PHONE = "+918260368337";
-const KEY = "Secretamongus";
-const roomID = [MY_PHONE, HER_PHONE].sort().join("_");
+const auth=firebase.auth();
+const db=firebase.firestore();
+const KEY="Secretamongus";
 
-let vanish = false, pc, localStream;
+/* FIXED USERS */
+const ME="+918480894259";
+const HER="+918260368337";
+const ROOM=[ME,HER].sort().join("_");
+
+let replyData=null;
+let typingTimer;
 
 /* AUTH */
-window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha', {size:'invisible'});
-async function sendOTP(){
-    const p = document.getElementById('phone').value;
-    window.confirmationResult = await auth.signInWithPhoneNumber(p, recaptchaVerifier);
-    document.getElementById('otp-box').classList.remove('hidden');
-}
-async function verifyOTP(){
-    await confirmationResult.confirm(document.getElementById('otp').value);
-    document.getElementById('auth').classList.add('hidden');
-    document.getElementById('chat').classList.remove('hidden');
-    startApp();
-}
+window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha',{size:'invisible'});
 
-/* APP */
-function startApp(){
-    loadMsgs();
-    loadNotes();
+function sendOTP(){
+auth.signInWithPhoneNumber(phone.value,recaptchaVerifier)
+.then(r=>{window.cr=r;otpBox.classList.remove('hidden')});
+}
+function verifyOTP(){cr.confirm(otp.value)}
+
+auth.onAuthStateChanged(u=>{
+if(!u) return;
+
+if(u.phoneNumber!==ME && u.phoneNumber!==HER){
+alert("Not authorized");
+auth.signOut();
+return;
 }
 
-function toggleVanish(){
-    vanish = !vanish;
-    document.getElementById('vBtn').innerText = vanish ? "Vanish ON" : "Vanish OFF";
-    document.getElementById('vBtn').className = vanish ? "vanish-btn vanish-on" : "vanish-btn";
+auth.remove();
+chat.classList.remove('hidden');
+
+loadNickname();
+setPresence();
+listenPresence();
+listenTyping();
+listenMessages();
+});
+
+/* 🔤 NICKNAME SYSTEM */
+function otherUser(){
+return auth.currentUser.phoneNumber===ME?HER:ME;
 }
 
-function send(){
-    const t = document.getElementById('msgIn').value;
-    if(!t) return;
-    pushMsg({type:'text', data:t});
-    document.getElementById('msgIn').value = '';
+function defaultName(){
+return auth.currentUser.phoneNumber===ME?"Her":"Him";
 }
 
-function pushMsg(payload){
-    const enc = CryptoJS.AES.encrypt(JSON.stringify(payload), KEY).toString();
-    db.collection('rooms').doc(roomID).collection('messages').add({
-        sender: auth.currentUser.phoneNumber,
-        text: enc,
-        vanish: vanish,
-        seenBy: [auth.currentUser.phoneNumber],
-        ts: firebase.firestore.FieldValue.serverTimestamp()
-    });
+function loadNickname(){
+db.collection("nicknames")
+.doc(auth.currentUser.phoneNumber)
+.collection("names")
+.doc(otherUser())
+.onSnapshot(d=>{
+chatName.textContent=d.exists?d.data().name:defaultName();
+});
 }
 
-function loadMsgs(){
-    db.collection('rooms').doc(roomID).collection('messages').orderBy('ts').onSnapshot(snap => {
-        const box = document.getElementById('messages');
-        box.innerHTML = '';
-        snap.forEach(doc => {
-            const m = doc.data();
-            const me = auth.currentUser.phoneNumber;
-
-            // Update seen status
-            if(!m.seenBy.includes(me)) doc.ref.update({seenBy: firebase.firestore.FieldValue.arrayUnion(me)});
-            
-            // Vanish Logic: Only delete if BOTH have seen it
-            if(m.vanish && m.seenBy.length >= 2) {
-                setTimeout(() => doc.ref.delete(), 3000);
-            }
-
-            try {
-                const dec = JSON.parse(CryptoJS.AES.decrypt(m.text, KEY).toString(CryptoJS.enc.Utf8));
-                const div = document.createElement('div');
-                div.className = `msg ${m.sender === me ? 'sent' : 'received'}`;
-                
-                if(dec.type === 'text') div.innerText = dec.data;
-                else if(dec.type === 'image') div.innerHTML = `<img src="${dec.data}" style="width:100%; border-radius:10px">`;
-                else if(dec.type === 'voice') div.innerHTML = `<audio src="${dec.data}" controls style="width:200px; filter:invert(1)"></audio>`;
-                
-                box.appendChild(div);
-            } catch(e){}
-        });
-        box.scrollTop = box.scrollHeight;
-    });
+function setNickname(){
+const name=prompt("Set nickname");
+if(!name) return;
+db.collection("nicknames")
+.doc(auth.currentUser.phoneNumber)
+.collection("names")
+.doc(otherUser())
+.set({name});
 }
 
-/* NOTES */
-function setNote(){
-    const n = prompt("Note:");
-    if(n) db.collection('notes').doc(auth.currentUser.phoneNumber).set({t: n});
-}
-function loadNotes(){
-    db.collection('notes').onSnapshot(snap => {
-        snap.forEach(d => {
-            if(d.id === auth.currentUser.phoneNumber) document.getElementById('myN').innerText = d.data().t;
-            else if(d.id === HER_PHONE || d.id === MY_PHONE) {
-                document.getElementById('partnerNote').classList.remove('hidden');
-                document.getElementById('herN').innerText = d.data().t;
-            }
-        });
-    });
+/* PRESENCE */
+function setPresence(){
+const ref=db.collection("presence").doc(auth.currentUser.phoneNumber);
+ref.set({online:true,last:Date.now()});
+window.addEventListener("beforeunload",()=>ref.set({online:false,last:Date.now()}));
 }
 
-/* MEDIA & CALL (WEBRTC) */
-// This section handles the peer-to-peer connection for voice/video
-
-
-async function call(v){
-    document.getElementById('call-ui').classList.remove('hidden');
-    localStream = await navigator.mediaDevices.getUserMedia({audio:true, video:v});
-    document.getElementById('local').srcObject = localStream;
-    // Signaling logic remains same as previous stable WebRTC implementations
+function listenPresence(){
+db.collection("presence").onSnapshot(s=>{
+s.forEach(d=>{
+if(d.id!==auth.currentUser.phoneNumber){
+const p=d.data();
+status.textContent=p.online?"Online":"Last seen "+new Date(p.last).toLocaleTimeString();
+}
+});
+});
 }
 
-function endCall(){
-    location.reload();
+/* TYPING */
+function typingNow(){
+db.collection("typing").doc(ROOM).set({user:auth.currentUser.phoneNumber});
+clearTimeout(typingTimer);
+typingTimer=setTimeout(()=>db.collection("typing").doc(ROOM).delete(),1200);
+}
+function listenTyping(){
+db.collection("typing").doc(ROOM).onSnapshot(d=>{
+if(!d.exists||d.data().user===auth.currentUser.phoneNumber)
+typing.classList.add("hidden");
+else typing.classList.remove("hidden");
+});
+}
+
+/* SEND MESSAGE */
+function sendText(){
+if(!msgIn.value) return;
+sendPayload({type:"text",data:msgIn.value,reply:replyData});
+msgIn.value="";
+cancelReply();
+}
+
+function sendPayload(p){
+const enc=CryptoJS.AES.encrypt(JSON.stringify(p),KEY).toString();
+db.collection("rooms").doc(ROOM).collection("messages").add({
+sender:auth.currentUser.phoneNumber,
+text:enc,
+seen:[auth.currentUser.phoneNumber],
+ts:firebase.firestore.FieldValue.serverTimestamp()
+});
+}
+
+/* LOAD MESSAGES */
+function listenMessages(){
+db.collection("rooms").doc(ROOM).collection("messages").orderBy("ts")
+.onSnapshot(s=>{
+messages.innerHTML="";
+s.forEach(d=>{
+const m=d.data(),me=auth.currentUser.phoneNumber;
+if(!m.seen.includes(me))
+d.ref.update({seen:firebase.firestore.FieldValue.arrayUnion(me)});
+
+const dec=JSON.parse(CryptoJS.AES.decrypt(m.text,KEY).toString(CryptoJS.enc.Utf8));
+const div=document.createElement("div");
+div.className="msg "+(m.sender===me?"sent":"recv");
+div.dataset.id=d.id;
+
+if(dec.reply){
+const r=document.createElement("div");
+r.className="reply-box";
+r.textContent=dec.reply.preview;
+div.appendChild(r);
+}
+
+div.appendChild(document.createTextNode(dec.data));
+
+const tick=document.createElement("div");
+tick.className="tick";
+tick.textContent=m.seen.length>1?"✓✓":"✓";
+div.appendChild(tick);
+
+div.oncontextmenu=e=>{
+e.preventDefault();
+setReply(dec,d.id);
+};
+
+messages.appendChild(div);
+});
+messages.scrollTop=messages.scrollHeight;
+});
+}
+
+/* REPLY */
+function setReply(dec,id){
+replyData={id,preview:dec.data};
+replyText.textContent=replyData.preview;
+replyPreview.classList.remove("hidden");
+}
+function cancelReply(){
+replyData=null;
+replyPreview.classList.add("hidden");
 }
 </script>
 </body>
